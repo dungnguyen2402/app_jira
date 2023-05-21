@@ -1,38 +1,41 @@
 //import React from 'react'
 import { Button, Form, Input, notification } from "antd";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
 import { useNavigate } from "react-router-dom";
 import { useAddSignupMutation } from "./signup.service";
-
-const config = {
-  apiKey: "AIzaSyB0aRPYe7oPFSgByTAjsWAugg5hcGyFjcE",
-  authDomain: "app-jira.firebaseapp.com",
-};
-
-firebase.initializeApp(config);
+import { useState } from "react";
+import axios from "axios";
+import UserOtp from "./UserOtp";
 
 const Signup = () => {
   const navigate = useNavigate();
-
+  const [email, setEmail] = useState("");
+  const [registered, setRegistered] = useState(false);
   const [addSignup] = useAddSignupMutation();
+
+  const handleSignup = () => {
+    axios
+      .post("http://localhost:1337/signup", { email })
+      .then((response) => {
+        console.log(response); // Xử lý phản hồi từ API nếu cần
+        setRegistered(true); // Đánh dấu đăng ký thành công
+      })
+
+      .catch((error) => {
+        console.error(error); // Xử lý lỗi nếu có
+      });
+  };
+
+  if (registered) {
+    return <UserOtp email={email} />;
+  }
 
   const onFinish = (values: any) => {
     addSignup(values);
     notification.success({
       message: "Signup success",
-      description: "Bạn đăng đã kí tài khoản thành công!Vui lòng đăng nhập",
+      description: "Bạn hãy xác thực với otp để hoàn thành",
     });
-    navigate("/signin");
-  };
-
-  const loginWithGoogle = () => {
-    firebase
-      .auth()
-      .signInWithPopup(new firebase.auth.GoogleAuthProvider())
-      .then((userCred) => {
-        console.log(userCred);
-      });
+    navigate("/user/otp");
   };
 
   return (
@@ -99,6 +102,7 @@ const Signup = () => {
             <Input
               style={{ width: "100%", height: "36px" }}
               placeholder="Enter your email"
+              onChange={(e) => setEmail(e.target.value)}
             />
           </Form.Item>
 
@@ -129,6 +133,7 @@ const Signup = () => {
               }}
               type="primary"
               htmlType="submit"
+              onClick={handleSignup}
             >
               Signup
             </Button>
@@ -151,7 +156,6 @@ const Signup = () => {
               border: "none",
               fontSize: "14px",
             }}
-            onClick={loginWithGoogle}
           >
             Login với google
           </button>

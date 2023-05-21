@@ -53,7 +53,7 @@ module.exports.routes = {
   "GET /auth/google/callback": "UserController.createGoogle",
 
   // OTP
-  "POST /user/sendotp": "UserController.userSendotp",
+  "POST /otp": "UserController.userSendotp",
 
   //SEARCH
   //"GET /search/:key": "SearchController.searchTaskTitle",

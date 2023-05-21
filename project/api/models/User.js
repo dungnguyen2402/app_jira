@@ -5,27 +5,23 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-
 module.exports = {
-
   attributes: {
-    id: { 
-      type: 'string' ,
-      columnName: '_id',
+    id: {
+      type: "string",
+      columnName: "_id",
     },
 
     name: {
-      type: 'string'
+      type: "string",
     },
 
     email: {
-      type: 'string',
-
+      type: "string",
     },
 
     password: {
-      type: 'string',
-
+      type: "string",
     },
 
     create: {
@@ -34,12 +30,8 @@ module.exports = {
     },
 
     role: {
-      type: 'string',
-      defaultsTo: 'member',
-    }
-
-
+      type: "string",
+      defaultsTo: "member",
+    },
   },
-
 };
-

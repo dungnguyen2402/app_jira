@@ -9,20 +9,7 @@ const Joi = require("joi");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
-const nodemailer = require("nodemailer");
-const otpGenerator = require("otp-generator");
-
-// email config
-
-try {
-  let transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "dungdungnguyen2402@gmail.com",
-      pass: "vtipzlpjctgtfgio",
-    },
-  });
-} catch (error) {}
+const sendOtpEmail = require("./SendEmailController");
 
 module.exports = {
   getCurrentUser: async function (req, res) {
@@ -176,43 +163,34 @@ module.exports = {
   },
 
   userSendotp: async function (req, res) {
-    const { email } = req.body;
-    if (!email) {
-      res.status(400).json({ error: "Please Enter Your Email" });
-    }
-
+    const email = req.body.email; // Lấy giá trị email từ body của yêu cầu
     try {
-      const presuer = await User.findOne({ email: email });
+      // Gửi OTP qua email
+      const OTP = await sendOtpEmail.sendOTPByEmail(email);
+      //console.log("OTP đã được gửi qua email:", OTP);
 
-      if (presuer) {
-        const OTP = otpGenerator.generate(6, {
-          upperCase: false,
-          specialChars: false,
-        });
-        console.log("Mã OTP:", OTP);
+      const createdTime = new Date(); // Lưu thời gian tạo OTP
 
-        let mailOptions = {
-          from: process.env.EMAIL, // sender address
-          to: "email", // list of receivers
-          subject: "Saending Email For Otp Validation", // Subject line
-          text: `OTP: -${OTP}`, // plain text body
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log("Error", error);
-            res.status(400).json({ email: "email not send" });
-          } else {
-            console.log("Email sent" + info.response);
-            res.status(200).json({ message: "Email sent successfully" });
-          }
-        });
+      if (isOTPValid(OTP, createdTime)) {
+        console.log("Mã OTP hợp lệ");
+        res.status(200).json({ message: "OTP sent successfully" });
+      } else {
+        console.log("Mã OTP đã hết hạn hoặc không hợp lệ");
+        res.status(400).json({ error: "Invalid OTP" });
       }
     } catch (error) {
-      res.status(404).json({ error: "Invalid Details", error });
+      console.log("Gửi OTP qua email thất bại:", error);
+      res.status(500).json({ error: "Failed to send OTP" });
     }
   },
 };
+
+function isOTPValid(OTP, createdTime) {
+  const currentTime = new Date();
+  const expirationTime = new Date(createdTime.getTime() + 5 * 60 * 1000); // Thời gian hết hạn sau 5 phút
+
+  return currentTime <= expirationTime;
+}
 
 // Login qua google
 // Lưu token phía token vào Session
