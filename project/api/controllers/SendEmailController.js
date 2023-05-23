@@ -9,22 +9,31 @@ const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
 
 module.exports = {
-  sendOTPByEmail: async (email) => {
+  sendOTPByEmail: async (req, res) => {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "dungdungnguyen2402@gmail.com",
+        pass: "vtipzlpjctgtfgio",
+      },
+    });
+    const email = req.body.email;
     try {
+      const userExit = await User.findOne({ email });
+      if (userExit) {
+        return res.status(400).json({
+          message: "Email đã tồn tại",
+        });
+      }
       const OTP = otpGenerator.generate(6, {
         digits: true,
         upperCase: false,
         specialChars: false,
+        lowerCaseAlphabets: false,
+        upperCaseAlphabets: false,
       });
-      console.log("Mã OTP:", OTP);
 
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "dungdungnguyen2402@gmail.com",
-          pass: "vtipzlpjctgtfgio",
-        },
-      });
+      await Otp.create({ email, otp: OTP });
 
       const mailOptions = {
         from: process.env.EMAIL,
@@ -33,12 +42,16 @@ module.exports = {
         text: `Mã OTP của bạn là: ${OTP}`,
       };
 
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.response);
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          return;
+        }
+        console.log("Email sent:", info.response);
 
-      return OTP;
+        return res.json({ message: "success" });
+      });
     } catch (error) {
-      console.log("Error:", +error);
+      console.log("Error:", +error.message);
     }
   },
 };

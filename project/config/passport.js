@@ -13,14 +13,14 @@ passport.use(
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: "/auth/google/callback",
-      scope: ["email"],
+      scope: ["email", "profile"],
     },
 
     async (accessToken, refreshToken, profile, done) => {
       console.log(profile);
       const newUser = {
         googleId: profile.id,
-        name: profile.name,
+        name: profile.displayName,
         email: profile.emails[0].value,
       };
 
@@ -29,24 +29,25 @@ passport.use(
 
         if (user) {
           console.log(user);
-          done(null, user);
+          done(null, profile);
         } else {
           user = await User.create(newUser);
           console.log("user new", user);
-          done(null, user);
+          done(null, profile);
         }
+        done(null, profile);
       } catch (err) {
-        console.log(err);
+        console.log("err", err.message);
       }
     }
   )
 );
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
+// passport.serializeUser((user, done) => {
+//   done(null, user.id);
+// });
 
-// used to deserialize the user
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => done(err, user));
-});
-// }
+// // used to deserialize the user
+// passport.deserializeUser((id, done) => {
+//   User.findById(id, (err, user) => done(err, user));
+// });
+// // }

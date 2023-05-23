@@ -10,6 +10,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const sendOtpEmail = require("./SendEmailController");
+const otpGenerator = require("otp-generator");
 
 module.exports = {
   getCurrentUser: async function (req, res) {
@@ -22,35 +23,18 @@ module.exports = {
     }
   },
   createSignup: async function (req, res) {
-    const schemaUserSignup = Joi.object({
-      name: Joi.string().required().messages({
-        "string.empty": "Trường name không được để trống",
-        "any.required": "Trường name là bắt buộc",
-      }),
-      email: Joi.string()
-        .email({ tlds: { allow: false } })
-        .required()
-        .messages({
-          "string.empty": "Trường email không được để trống",
-          "any.required": "Trường email là bắt buộc",
-          "string.email": "Email không hợp lệ",
-        }),
-      password: Joi.string().required().messages({
-        "string.empty": "Trường password không được để trống",
-        "any.required": "Trường password là bắt buộc",
-      }),
-    });
+    console.log(req.body);
     try {
       const { name, email, password } = req.body;
-      const { error } = schemaUserSignup.validate(req.body, {
-        abortEarly: false,
-      });
-      if (error) {
-        const errors = error.details.map((err) => err.message);
-        return res.status(400).json({
-          message: errors,
-        });
-      }
+      // const { error } = schemaUserSignup.validate(req.body, {
+      //   abortEarly: false,
+      // });
+      // if (error) {
+      //   const errors = error.details.map((err) => err.message);
+      //   return res.status(400).json({
+      //     message: errors,
+      //   });
+      // }
 
       const userExit = await User.findOne({ email });
       if (userExit) {
@@ -59,18 +43,30 @@ module.exports = {
         });
       }
 
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-      });
+      const otps = await Otp.find({ email }).sort("createdAt DESC");
 
-      return res.json({
-        message: "Đăng kí tk thành công!",
-        user,
-      });
+      if (!otps[0] || otps[0].otp !== otp) {
+        return res.status(400).json({
+          message: "Mã OTP không hợp lệ",
+        });
+      } else if (otps[0].exprienIn < Date.now()) {
+        return res.status(400).json({
+          message: "OTP đã hết hạn",
+        });
+      } else {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const user = await User.create({
+          name,
+          email,
+          password: hashedPassword,
+        });
+
+        return res.json({
+          message: "Đăng kí tk thành công!",
+          user,
+        });
+      }
     } catch (error) {
       return res.status(400).json({
         message: error.message,
@@ -137,13 +133,12 @@ module.exports = {
     try {
       passport.authenticate(
         "google",
-        { scope: ["profile", "email"] },
+        { session: false },
         async (err, user, info) => {
           console.log("user,", user);
           if (err || !user) {
             return res.redirect("/signin");
           }
-
           const token = jwt.sign(
             {
               id: user.id,
@@ -162,35 +157,40 @@ module.exports = {
     }
   },
 
-  userSendotp: async function (req, res) {
-    const email = req.body.email; // Lấy giá trị email từ body của yêu cầu
-    try {
-      // Gửi OTP qua email
-      const OTP = await sendOtpEmail.sendOTPByEmail(email);
-      //console.log("OTP đã được gửi qua email:", OTP);
+  // userSendotp: async function (req, res) {
+  //   const email = req.body.email; // Lấy giá trị email từ body của yêu cầu
+  //   console.log("body", req.body);
+  //   try {
+  //     // Gửi OTP qua email
+  //     const sendOTP = sendOtpEmail.sendOTPByEmail(email);
+  //     console.log("sendOTP", sendOTP);
+  //     const enteredOtp = req.body.otp;
+  //     console.log("enteredOtp", enteredOtp);
 
-      const createdTime = new Date(); // Lưu thời gian tạo OTP
+  //     // gửi otp => otp
+  //     // client nhập otp lấy otp db ra so sánh đúng tạo tk
 
-      if (isOTPValid(OTP, createdTime)) {
-        console.log("Mã OTP hợp lệ");
-        res.status(200).json({ message: "OTP sent successfully" });
-      } else {
-        console.log("Mã OTP đã hết hạn hoặc không hợp lệ");
-        res.status(400).json({ error: "Invalid OTP" });
-      }
-    } catch (error) {
-      console.log("Gửi OTP qua email thất bại:", error);
-      res.status(500).json({ error: "Failed to send OTP" });
-    }
-  },
+  //     if (enteredOtp === sendOTP) {
+  //       console.log("OTP is valid");
+  //       res.status(200).json({ message: "OTP sent successfully" });
+  //     } else {
+  //       console.log("Invalid OTP");
+  //       res.status(400).json({ message: "Invalid OTP" });
+  //     }
+  //     //const createdTime = new Date(); // Lưu thời gian tạo OTP
+  //   } catch (error) {
+  //     console.log("Gửi OTP qua email thất bại:", error);
+  //     res.status(500).json({ error: "Failed to send OTP" });
+  //   }
+  // },
 };
 
-function isOTPValid(OTP, createdTime) {
-  const currentTime = new Date();
-  const expirationTime = new Date(createdTime.getTime() + 5 * 60 * 1000); // Thời gian hết hạn sau 5 phút
+// function isOTPValid(OTP, createdTime) {
+//   const currentTime = new Date();
+//   const expirationTime = new Date(createdTime.getTime() + 5 * 60 * 1000); // Thời gian hết hạn sau 5 phút
 
-  return currentTime <= expirationTime;
-}
+//   return currentTime <= expirationTime;
+// }
 
 // Login qua google
 // Lưu token phía token vào Session

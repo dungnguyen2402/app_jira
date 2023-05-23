@@ -20,5 +20,10 @@ module.exports = {
     otp: {
       type: "string",
     },
+
+    exprienIn: {
+      type: "number",
+      defaultsTo: Date.now() + 2 * 60 * 1000,
+    },
   },
 };

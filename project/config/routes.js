@@ -49,11 +49,22 @@ module.exports.routes = {
   "DELETE /category/:id": "CategoryController.removeCategory",
 
   // LOGIN GOOGLE
-  "GET /login/google": [passport.authenticate("google")],
-  "GET /auth/google/callback": "UserController.createGoogle",
+  "GET /login/google": [passport.authenticate("google", { session: false })],
+  "GET /auth/google/callback": [
+    //  passport .authenticate("google", {
+    //     session: false,
+    //     successRedirect: "/auth/google/success",
+    //     failureRedirect: "/auth/google/failure",
+    //     failureMessage: (error) => {
+    //       console.log(error.message);
+    //     },
+    //   }),
+    UserController.createGoogle,
+  ],
 
   // OTP
-  "POST /otp": "UserController.userSendotp",
+  //"POST /sigup": "UserController.userSendotp",
+  "POST /send-otp": "SendEmailController.sendOTPByEmail",
 
   //SEARCH
   //"GET /search/:key": "SearchController.searchTaskTitle",

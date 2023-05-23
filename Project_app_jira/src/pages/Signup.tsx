@@ -1,41 +1,57 @@
 //import React from 'react'
 import { Button, Form, Input, notification } from "antd";
-import { useNavigate } from "react-router-dom";
-import { useAddSignupMutation } from "./signup.service";
+//import { useAddSignupMutation } from "./signup.service";
 import { useState } from "react";
 import axios from "axios";
-import UserOtp from "./UserOtp";
+import OTPInput from "react-otp-input";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [registered, setRegistered] = useState(false);
-  const [addSignup] = useAddSignupMutation();
+  const [form] = Form.useForm();
+  const [otp, setOtp] = useState("");
 
-  const handleSignup = () => {
-    axios
-      .post("http://localhost:1337/signup", { email })
-      .then((response) => {
-        console.log(response); // Xử lý phản hồi từ API nếu cần
-        setRegistered(true); // Đánh dấu đăng ký thành công
-      })
+  const handleSendOtp = async () => {
+    const resultValidate = await form.validateFields();
 
-      .catch((error) => {
-        console.error(error); // Xử lý lỗi nếu có
-      });
+    if (!resultValidate.error) {
+      axios
+        .post("http://localhost:1337/send-otp", {
+          email: form.getFieldValue("email"),
+        })
+        .then(() => {
+          notification.success({
+            message: "Signup success",
+            description: "Send otp successfully",
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
   };
 
-  if (registered) {
-    return <UserOtp email={email} />;
-  }
+  const handleOtpChange = (otp: string) => {
+    setOtp(otp);
+  };
 
   const onFinish = (values: any) => {
-    addSignup(values);
-    notification.success({
-      message: "Signup success",
-      description: "Bạn hãy xác thực với otp để hoàn thành",
-    });
-    navigate("/user/otp");
+    console.log(values);
+    axios
+      .post("http://localhost:1337/signup", values)
+      .then(() => {
+        notification.success({
+          message: "Signup success",
+          description: "",
+        });
+        navigate("/");
+      })
+      .catch((error) => {
+        console.log(error);
+        notification.error({
+          message: error.response.data.message,
+        });
+      });
   };
 
   return (
@@ -51,6 +67,7 @@ const Signup = () => {
 
         <Form
           name="basic"
+          form={form}
           labelCol={{
             span: 8,
           }}
@@ -58,7 +75,7 @@ const Signup = () => {
             span: 16,
           }}
           style={{
-            maxWidth: 900,
+            maxWidth: 1000,
             maxHeight: 700,
           }}
           initialValues={{
@@ -102,7 +119,6 @@ const Signup = () => {
             <Input
               style={{ width: "100%", height: "36px" }}
               placeholder="Enter your email"
-              onChange={(e) => setEmail(e.target.value)}
             />
           </Form.Item>
 
@@ -132,12 +148,27 @@ const Signup = () => {
                 fontSize: "18px",
               }}
               type="primary"
-              htmlType="submit"
-              onClick={handleSignup}
+              onClick={handleSendOtp}
             >
-              Signup
+              Xác thực với OTP
             </Button>
           </Form.Item>
+          <h4>Vui lòng nhập OTP</h4>
+          <Form.Item className="otp-container" name="otp">
+            <OTPInput
+              value={otp}
+              onChange={handleOtpChange}
+              numInputs={6}
+              renderSeparator={<span>-</span>}
+              renderInput={(props, index) => (
+                <input {...props} className="otp-input" key={index} />
+              )}
+            />
+          </Form.Item>
+          <Button htmlType="submit" className="otp-button">
+            Xác nhận
+          </Button>
+
           <hr />
           {/* <div><StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} /></div> */}
           <p style={{ textAlign: "center" }}>

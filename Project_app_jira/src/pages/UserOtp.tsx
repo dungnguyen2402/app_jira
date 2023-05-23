@@ -10,6 +10,8 @@ const UserOtp = ({ email }: Props) => {
   const [otp, setOtp] = useState("");
   const [otpValid, setOtpValid] = useState(false);
 
+  console.log(email);
+
   useEffect(() => {
     axios
       .post("http://localhost:1337/otp", { email })

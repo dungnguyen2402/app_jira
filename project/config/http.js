@@ -23,7 +23,7 @@ module.exports.http = {
 
   middleware: {
     passportInit: passport.initialize(),
-    order: ["passportInit", "bodyParser"],
+    order: ["bodyParser", "passportInit"],
 
     /***************************************************************************
      *                                                                          *
