@@ -131,66 +131,33 @@ module.exports = {
 
   createGoogle: async function (req, res, next) {
     try {
-      passport.authenticate(
-        "google",
-        { session: false },
-        async (err, user, info) => {
-          console.log("user,", user);
-          if (err || !user) {
-            return res.redirect("/signin");
+      const token = await new Promise((resolve, reject) => {
+        passport.authenticate(
+          "google",
+          { session: false },
+          async (err, user, info) => {
+            if (err || !user) {
+              return res.redirect("/signin");
+            }
+            const token = jwt.sign(
+              {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+              },
+              "123456",
+              { expiresIn: "1d" }
+            );
+            resolve(token);
           }
-          const token = jwt.sign(
-            {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-            },
-            "123456",
-            { expiresIn: "1d" }
-          );
-
-          return res.redirect("http://localhost:5173?token=" + token);
-        }
-      )(req, res, next);
+        )(req, res, next);
+      });
+      return res.redirect("http://localhost:5173?token=" + token);
     } catch (error) {
       res.status(404).json({ error: "Invalid Details", error });
     }
   },
-
-  // userSendotp: async function (req, res) {
-  //   const email = req.body.email; // Lấy giá trị email từ body của yêu cầu
-  //   console.log("body", req.body);
-  //   try {
-  //     // Gửi OTP qua email
-  //     const sendOTP = sendOtpEmail.sendOTPByEmail(email);
-  //     console.log("sendOTP", sendOTP);
-  //     const enteredOtp = req.body.otp;
-  //     console.log("enteredOtp", enteredOtp);
-
-  //     // gửi otp => otp
-  //     // client nhập otp lấy otp db ra so sánh đúng tạo tk
-
-  //     if (enteredOtp === sendOTP) {
-  //       console.log("OTP is valid");
-  //       res.status(200).json({ message: "OTP sent successfully" });
-  //     } else {
-  //       console.log("Invalid OTP");
-  //       res.status(400).json({ message: "Invalid OTP" });
-  //     }
-  //     //const createdTime = new Date(); // Lưu thời gian tạo OTP
-  //   } catch (error) {
-  //     console.log("Gửi OTP qua email thất bại:", error);
-  //     res.status(500).json({ error: "Failed to send OTP" });
-  //   }
-  // },
 };
-
-// function isOTPValid(OTP, createdTime) {
-//   const currentTime = new Date();
-//   const expirationTime = new Date(createdTime.getTime() + 5 * 60 * 1000); // Thời gian hết hạn sau 5 phút
-
-//   return currentTime <= expirationTime;
-// }
 
 // Login qua google
 // Lưu token phía token vào Session

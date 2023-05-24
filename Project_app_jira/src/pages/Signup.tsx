@@ -1,6 +1,5 @@
 //import React from 'react'
 import { Button, Form, Input, notification } from "antd";
-//import { useAddSignupMutation } from "./signup.service";
 import { useState } from "react";
 import axios from "axios";
 import OTPInput from "react-otp-input";
@@ -33,6 +32,15 @@ const Signup = () => {
 
   const handleOtpChange = (otp: string) => {
     setOtp(otp);
+  };
+
+  const onHandleGoogle = async () => {
+    try {
+      await axios.get("http://localhost/1337/auth/google/callback");
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const onFinish = (values: any) => {
@@ -187,6 +195,7 @@ const Signup = () => {
               border: "none",
               fontSize: "14px",
             }}
+            onClick={onHandleGoogle}
           >
             Login với google
           </button>

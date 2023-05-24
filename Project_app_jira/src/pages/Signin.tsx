@@ -12,29 +12,24 @@ const Signin = () => {
   const onFinish = async (values: any) => {
     try {
       const response = await addSignin(values);
+      console.log(response);
       const token = response.data.accessToken;
 
       localStorage.setItem("token", token);
       //location.replace("/");
       navigate("/");
 
-      if (response.ok) {
+      if (response) {
         notification.success({
           message: "Success",
-          description: "Login successful",
+          description: response.data.message,
         });
-      } else {
-        // Hiển thị thông báo lỗi
-        notification.error({
-          message: response.error.data.message,
-        });
-        console.log(response);
       }
     } catch (error) {
-      notification.success({
+      notification.error({
         message: "Error",
+        description: error?.response?.data?.message,
       });
-      console.log("error", error.message);
     }
 
     //navigate("/")

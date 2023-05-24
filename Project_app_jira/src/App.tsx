@@ -1,5 +1,5 @@
 import "./App.css";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useSearchParams } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
@@ -8,12 +8,21 @@ import AddTask from "./pages/task/AddTask";
 import LayoutProject from "./layout/LayoutProject";
 import ListProject from "./pages/project/ListProject";
 import UpdateProject from "./pages/project/UpdateProject";
-// import UpdateTask from './pages/task/UpdateTask'
-import UserOtp from "./pages/UserOtp";
 import { useEffect } from "react";
 import axios from "axios";
 
 function App() {
+  const [searchParams] = useSearchParams();
+
+  console.log(searchParams.get("token"));
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+  }, [searchParams.get("token")]);
+
   useEffect(() => {
     axios
       .get(`http://localhost:1337/current-user`, {
@@ -39,10 +48,8 @@ function App() {
           <Route index path="/addproject" element={<AddProject />} />
           <Route index path="/project" element={<ListProject />} />
           <Route index path="/project/:id" element={<UpdateProject />} />
-          {/* <Route index path='/task/:id' element={<UpdateTask />} /> */}
           <Route index path="/signup" element={<Signup />} />
           <Route index path="/signin" element={<Signin />} />
-          <Route index path="/user/otp" element={<UserOtp />} />
         </Routes>
       </div>
     </>
