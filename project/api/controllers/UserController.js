@@ -25,7 +25,7 @@ module.exports = {
   createSignup: async function (req, res) {
     console.log(req.body);
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, otp } = req.body;
       // const { error } = schemaUserSignup.validate(req.body, {
       //   abortEarly: false,
       // });
@@ -45,7 +45,7 @@ module.exports = {
 
       const otps = await Otp.find({ email }).sort("createdAt DESC");
 
-      if (!otps[0] || otps[0].otp !== otp) {
+      if (otps[0].otp !== otp) {
         return res.status(400).json({
           message: "Mã OTP không hợp lệ",
         });

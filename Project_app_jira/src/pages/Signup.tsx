@@ -37,7 +37,7 @@ const Signup = () => {
   const onHandleGoogle = async () => {
     try {
       await axios.get("http://localhost/1337/auth/google/callback");
-      navigate("/");
+      navigate("/signin");
     } catch (error) {
       console.log(error);
     }
@@ -52,7 +52,7 @@ const Signup = () => {
           message: "Signup success",
           description: "",
         });
-        navigate("/");
+        navigate("/signin");
       })
       .catch((error) => {
         console.log(error);

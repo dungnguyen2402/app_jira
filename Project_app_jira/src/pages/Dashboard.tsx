@@ -153,10 +153,8 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // Token chưa tồn tại trong localStorage, chuyển hướng đến trang đăng kí
       navigate("signup");
     } else {
-      // Token đã tồn tại trong localStorage, chuyển hướng đến trang chủ
     }
   } catch (error) {
     console.log(error);

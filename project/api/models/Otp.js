@@ -23,7 +23,7 @@ module.exports = {
 
     exprienIn: {
       type: "number",
-      defaultsTo: Date.now() + 2 * 60 * 1000,
+      defaultsTo: Date.now() + 5 * 60 * 1000,
     },
   },
 };
