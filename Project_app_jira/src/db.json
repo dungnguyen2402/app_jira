@@ -1,0 +1,169 @@
+{
+  "name": "Page Design",
+  "desc": "",
+  "apis": [
+    {
+      "title": "Find",
+      "name": "getPage",
+      "method": "post",
+      "url": "dynamic/dataModel/dpage",
+      "after": "none",
+      "toast": false
+    },
+    {
+      "title": "createPageUi",
+      "name": "createPageUi",
+      "method": "post",
+      "url": "dynamic/dataModel/create/dpage",
+      "after": "back",
+      "toast": "true"
+    },
+    {
+      "title": "updatePageUi",
+      "name": "updatePageUi",
+      "method": "post",
+      "url": "dynamic/dataModel/update/dpage",
+      "after": "none",
+      "toast": "true"
+    },
+    {
+      "title": "deletePageui",
+      "name": "deletePageui",
+      "method": "post",
+      "url": "dynamic/dataModel/delete/dpage",
+      "after": "readAgain",
+      "toast": "true",
+      "confirm": "Are you want to delete this record ?"
+    }
+  ],
+  "read": "getPage",
+  "buttons": [
+    {
+      "mode": "create",
+      "title": "Create",
+      "action": "url",
+      "icon": "PlusOutlined",
+      "type": "submit",
+      "onViewScreen": true,
+      "url": "#/editor?mode=create&pageSid=0151690770839359",
+      "api": "createPageUi"
+    },
+    {
+      "mode": "edit",
+      "title": "Update",
+      "action": "url",
+      "icon": "SaveOutlined",
+      "type": "button",
+      "url": "#/editor?mode=edit&pageSid=0151690770839359&sid={{sid}}"
+    },
+    {
+      "mode": "edit",
+      "title": "Update",
+      "action": "api",
+      "icon": "SaveOutlined",
+      "type": "submit",
+      "api": "updatePageUi"
+    },
+    {
+      "mode": "create",
+      "title": "Delete",
+      "action": "api",
+      "icon": "",
+      "type": "button",
+      "api": "deletePageui"
+    }
+  ],
+  "grid": [
+    {
+      "name": "Sid",
+      "field": "sid",
+      "filterable": "true",
+      "type": "text",
+      "widget": "text"
+    },
+    {
+      "name": "Title",
+      "field": "title",
+      "filterable": "true",
+      "type": "text",
+      "widget": ""
+    },
+    {
+      "name": "Path",
+      "field": "path",
+      "filterable": "true",
+      "type": "text",
+      "widget": ""
+    },
+    {
+      "name": "Language",
+      "field": "language",
+      "filterable": "true",
+      "type": "text",
+      "widget": "text"
+    },
+    {
+      "name": "CreatedAt",
+      "field": "createdAt",
+      "filterable": "true",
+      "type": "date",
+      "widget": "dateformat"
+    }
+  ],
+  "schema": [
+    {
+      "name": "Title",
+      "field": "title",
+      "type": "string",
+      "required": "true",
+      "widget": "Text"
+    },
+    {
+      "name": "Path",
+      "field": "path",
+      "type": "string",
+      "required": "true",
+      "widget": "Text"
+    },
+    {
+      "name": "Footer",
+      "field": "footer",
+      "type": "string",
+      "required": false,
+      "widget": "Text",
+      "w": "4"
+    },
+    {
+      "name": "Language",
+      "field": "language",
+      "type": "string",
+      "required": false,
+      "widget": "Text",
+      "w": "2"
+    },
+    {
+      "name": "isPublic",
+      "field": "isPublic",
+      "type": "boolean",
+      "required": false,
+      "widget": "SwitchWidget",
+      "w": "4"
+    },
+    {
+      "name": "Description",
+      "field": "desc",
+      "type": "string",
+      "required": "true",
+      "widget": "TextArea",
+      "w": "24"
+    },
+    {
+      "name": "UI",
+      "field": "ui",
+      "type": "json",
+      "required": "true",
+      "widget": "GrapesEditor",
+      "w": "NumberInt(24)"
+    }
+  ]
+}

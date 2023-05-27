@@ -9,12 +9,44 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useState } from "react";
 import { DeleteOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { Cascader } from "antd";
+import { Button, message, Popconfirm } from "antd";
+
+const { SHOW_CHILD } = Cascader;
+
+interface Option {
+  value: string | number;
+  label: string;
+  children?: Option[];
+}
+
+const options: Option[] = [
+  {
+    label: "Dung",
+    value: "light",
+  },
+  {
+    label: "DungNguyen",
+    value: "bamboo",
+  },
+];
+
+const text = "Are you sure to delete this task?";
+const description = "Delete the task";
+
+const confirm = () => {
+  message.info("Clicked on Yes.");
+};
 
 // interface Props  {
 //   onAdd: (product: IProduct) => void;
 // }
 
-const UpdateTask = ({ id, setIsModalOpen }) => {
+const UpdateTask = ({ id }) => {
+  const onChanges = (value: string[][]) => {
+    console.log(value);
+  };
+
   const [value, setValue] = useState("");
 
   const handleChange = (content: any) => {
@@ -54,15 +86,24 @@ const UpdateTask = ({ id, setIsModalOpen }) => {
   return (
     <>
       <div className="">
-        <DeleteOutlined
-          style={{
-            float: "right",
-            cursor: "pointer",
-            paddingRight: "30px",
-            fontSize: "18px",
-          }}
+        <Popconfirm
+          placement="top"
+          title={text}
+          description={description}
+          onConfirm={confirm}
+          okText="Yes"
+          cancelText="No"
           onClick={() => handleDeleteTask(id)}
-        />
+        >
+          <DeleteOutlined
+            style={{
+              float: "right",
+              cursor: "pointer",
+              paddingRight: "30px",
+              fontSize: "18px",
+            }}
+          />
+        </Popconfirm>
         <Form
           // form ={form}
           name="basic"
@@ -156,15 +197,17 @@ const UpdateTask = ({ id, setIsModalOpen }) => {
                 required={false}
                 style={{ fontSize: "24", fontWeight: "700" }}
               >
-                <Select
-                  placeholder="Select a option and change input text above"
-                  //onChange={onGenderChange}
-                  allowClear
-                >
-                  <Option value="64464f05041ceb258caa2e8d">male</Option>
-                  <Option value="2">female</Option>
-                  <Option value="other">other</Option>
-                </Select>
+                <>
+                  <br />
+                  <Cascader
+                    style={{ width: "100%" }}
+                    options={options}
+                    onChange={onChanges}
+                    multiple
+                    maxTagCount="responsive"
+                    defaultValue={["bamboo"]}
+                  />
+                </>
               </Form.Item>
               <Form.Item
                 label="REPORTER"

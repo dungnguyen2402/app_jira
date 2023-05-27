@@ -10,6 +10,8 @@ import ListProject from "./pages/project/ListProject";
 import UpdateProject from "./pages/project/UpdateProject";
 import { useEffect } from "react";
 import axios from "axios";
+import Admin from "./pages/admin/Admin";
+import NavAdmin from "./pages/admin/NavAdmin";
 
 function App() {
   const [searchParams] = useSearchParams();
@@ -35,7 +37,9 @@ function App() {
 
         localStorage.setItem("currentUser", JSON.stringify(userData));
       })
-      .catch(() => {});
+      .catch(() => {
+        console.log("Error");
+      });
   }, []);
 
   return (
@@ -50,6 +54,8 @@ function App() {
           <Route index path="/project/:id" element={<UpdateProject />} />
           <Route index path="/signup" element={<Signup />} />
           <Route index path="/signin" element={<Signin />} />
+          <Route index path="/admin" element={<Admin />}></Route>
+          <Route index path="/navadmin" element={<NavAdmin />}></Route>
         </Routes>
       </div>
     </>

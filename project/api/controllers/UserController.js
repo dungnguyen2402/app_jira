@@ -154,7 +154,7 @@ module.exports = {
       });
       return res.redirect("http://localhost:5173?token=" + token);
     } catch (error) {
-      res.status(404).json({ error: "Invalid Details", error });
+      res.status(404).json({ error: "Invalid Details" });
     }
   },
 };
