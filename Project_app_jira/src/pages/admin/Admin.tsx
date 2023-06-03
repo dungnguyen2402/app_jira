@@ -1,91 +1,37 @@
-import { useState, useRef } from "react";
-import type {
-  ColumnsType,
-  FilterValue,
-  SorterResult,
-} from "antd/es/table/interface";
+import { useState, useEffect } from "react";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  DownOutlined,
-  AppstoreOutlined,
-  ContactsOutlined,
-  FolderOpenOutlined,
-  ApartmentOutlined,
-  SettingOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  ReloadOutlined,
+  MenuFoldOutlined, MenuUnfoldOutlined, AppstoreOutlined, SearchOutlined, DownOutlined, ReloadOutlined, QuestionCircleOutlined, SettingOutlined,
 } from "@ant-design/icons";
-import {
-  Layout,
-  Menu,
-  Button,
-  theme,
-  Space,
-  Table,
-  TableProps,
-  Dropdown,
-  Tabs,
-  Input,
-  Modal,
-} from "antd";
-import NavAdmin from "./NavAdmin";
+import { Layout, Menu, Button, theme, Table, Modal, Input, Dropdown, notification, Popconfirm, Form } from "antd";
+import { Link, useSearchParams } from "react-router-dom";
+import pageViews from "../../db.json";
+import axios from "axios";
+import { DataSoure } from "../../interfaces/DataSoure";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Header, Sider, Content } = Layout;
 
-interface DataType {
-  key: string;
-  name: string;
-  age: number;
-  address: string;
-}
+const Admin = () => {
+  const notify = () => toast("Wow so easy!");
+  const [collapsed, setCollapsed] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [project, setProject] = useState([]);
+  const [dataSource, setDataSource] = useState<DataSoure[]>([]);
 
-type Props = {};
+  useEffect(() => {
+    fetchProject();
+  }, []);
 
-const data: DataType[] = [
-  {
-    key: "1",
-    name: "John Brown",
-    age: 32,
-    address: "New York No. 1 Lake Park",
-  },
-  {
-    key: "2",
-    name: "Jim Green",
-    age: 42,
-    address: "London No. 1 Lake Park",
-  },
-  {
-    key: "3",
-    name: "Joe Black",
-    age: 32,
-    address: "Sydney No. 1 Lake Park",
-  },
-  {
-    key: "4",
-    name: "Jim Red",
-    age: 32,
-    address: "London No. 2 Lake Park",
-  },
-];
-
-//----------------------------------------------------------------
-
-type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
-
-const defaultPanes = new Array(2).fill(null).map((_, index) => {
-  const id = String(index + 1);
-  return {
-    label: `Tab ${id}`,
-    children: `Content of Tab Pane ${index + 1}`,
-    key: id,
+  const fetchProject = async () => {
+    try {
+      const response = await axios.get("http://localhost:1337/project");
+      const projectDb = response.data;
+      setProject(projectDb);
+    } catch (error) {
+      console.error(error);
+    }
   };
-});
-//----------------------------------------------------------------
-
-const Admin = (props: Props) => {
-  /**  Modal */
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -101,116 +47,163 @@ const Admin = (props: Props) => {
     setIsModalOpen(false);
   };
 
-  /**  End Modal */
+  const currentPage = pageViews.find(
+    (page) => page.id === searchParams.get("sid")
+  );
+  console.log(currentPage);
 
-  const [activeKey, setActiveKey] = useState(defaultPanes[0].key);
-  const [menuItems, setItems] = useState(defaultPanes);
-  const newTabIndex = useRef(0);
+  const fetchData = async () => {
+    const apis = currentPage?.apis || [];
 
-  const onChange = (key: string) => {
-    setActiveKey(key);
-  };
-
-  const add = (key: string) => {
-    const selectedItem = menuItems.find((item: any) => item.key == key);
-    if (selectedItem) {
-      const newActiveKey = `newTab${newTabIndex.current++}`;
-      const newLabel = selectedItem.label;
-      setItems([
-        ...menuItems,
-        { label: newLabel, children: "New Tab Pane", key: newActiveKey },
-      ]);
-      setActiveKey(newActiveKey);
+    for (const api of apis) {
+      if (
+        api.method === "get" ||
+        api.method === "create" ||
+        api.method === "update" ||
+        api.method === "delete"
+      ) {
+        try {
+          const response = await axios[api.method](api.url);
+          setDataSource(response.data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
     }
   };
 
-  const remove = (targetKey: TargetKey) => {
-    const targetIndex = menuItems.findIndex((pane) => pane.key == targetKey);
-    const newPanes = menuItems.filter((pane) => pane.key !== targetKey);
-    if (newPanes.length && targetKey == activeKey) {
-      const { key } =
-        newPanes[
-          targetIndex == newPanes.length ? targetIndex - 1 : targetIndex
-        ];
-      setActiveKey(key);
-    }
-    setItems(newPanes);
-  };
+  useEffect(() => {
+    fetchData();
+  }, [currentPage]);
+  //console.log(dataSource);
 
-  const onEdit = (targetKey: TargetKey, action: "add" | "remove") => {
-    if (action === "add") {
-      add();
-    } else {
-      remove(targetKey);
+  const handleDelete = async (_id: string) => {
+    try {
+      await axios.delete(`http://localhost:1337/project/${_id}`);
+      fetchData();
+      toast.success("Project deleted successfully👌❤️")
+    } catch (error) {
+      toast.error("Project deleted failed 😭")
     }
   };
 
-  const [filteredInfo, setFilteredInfo] = useState<
-    Record<string, FilterValue | null>
-  >({});
-  const [sortedInfo, setSortedInfo] = useState<SorterResult<DataType>>({});
-
-  const handleChange: TableProps<DataType>["onChange"] = (
-    pagination,
-    filters,
-    sorter
-  ) => {
-    console.log("Various parameters", pagination, filters, sorter);
-    setFilteredInfo(filters);
-    setSortedInfo(sorter as SorterResult<DataType>);
+  const btn = currentPage?.schema;
+  //console.log(btn);
+  const renderWidget = (widgetType: any, field: any) => {
+    switch (widgetType) {
+      case "Text":
+        return <Input />;
+      case "TextArea":
+        return <Input.TextArea />;
+      default:
+        return null;
+    }
   };
 
-  const columns: ColumnsType<DataType> = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Age",
-      dataIndex: "age",
-      key: "age",
-      sorter: (a, b) => a.age - b.age,
-      sortOrder: sortedInfo.columnKey === "age" ? sortedInfo.order : null,
-      ellipsis: true,
-    },
-    {
-      title: "Address",
-      dataIndex: "address",
-      key: "address",
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      key: "action",
-      render: () => (
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="1">Update</Menu.Item>
-              <Menu.Item key="2">Delete</Menu.Item>
-            </Menu>
-          }
-        >
-          <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
-            <SettingOutlined /> <DownOutlined />
-          </a>
-        </Dropdown>
-      ),
-    },
-  ];
-  const [collapsed, setCollapsed] = useState(false);
+  const dataSourceMapped = dataSource.map((item) => {
+    return {
+      key: item.key,
+      id: item.id,
+      name: item.name,
+      email: item.email,
+      title: item.title,
+      description: item.description,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      url: item.url,
+    };
+  });
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
+  const columns = [
+    ...currentPage!.grid.map((column) => ({
+      title: column.field,
+      dataIndex: column.field,
+      key: column.field,
+    })),
+    {
+      title: "Action",
+      render: (record: any) => (
+        <Dropdown
+          overlay={
+            <Menu>
+              {currentPage?.buttons.map((btn) => {
+                if (btn.type === 'button') {
+                  return (
+                    <Menu.Item key={btn.title}>
+                      {btn.title === 'Delete' ? (
+                        <Popconfirm
+                          title="Delete the task"
+                          onConfirm={() => handleDelete(record.id)}
+                          okText="Delete"
+                          cancelText="Cancel"
+                          icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+                        >
+                          <a>{btn.title}</a>
+                        </Popconfirm>
+                      ) : (
+                        <a>{btn.title}</a>
+                      )}
+                    </Menu.Item>
+                  );
+                }
+                return null;
+              })}
+            </Menu>
+          }
+        >
+
+          <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
+            <SettingOutlined /> <DownOutlined />
+          </a>
+        </Dropdown>
+
+      ),
+    },
+  ];
+
+  const onFinish = (values: any) => {
+    console.log(values);
+  };
+
   return (
     <div>
       <Layout>
-        <NavAdmin />
+        <Sider trigger={null} collapsible collapsed={collapsed}>
+          <div className="demo-logo-vertical" />
+          <h2 style={{ color: "white", textAlign: "center" }}>Al Portal</h2>
+          <Menu
+            theme="dark"
+            mode="inline"
+            defaultSelectedKeys={["1"]}
+            items={pageViews.map((pageView) => {
+              return {
+                key: pageView.name,
+                icon: <AppstoreOutlined />,
+                label: (
+                  <Link to={`/admin?sid=${pageView.id}`}>{pageView.name}</Link>
+                ),
+              };
+            })}
+          />
+        </Sider>
 
         <Layout>
-          <Header style={{ padding: 0, background: colorBgContainer }}></Header>
+          <Header style={{ padding: 0, background: colorBgContainer }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: "16px",
+                width: 64,
+                height: 64,
+              }}
+            />
+          </Header>
           <Content
             style={{
               margin: "24px 16px",
@@ -219,49 +212,53 @@ const Admin = (props: Props) => {
               background: colorBgContainer,
             }}
           >
+            <h2>{currentPage?.name}</h2>
+
             <>
-              <Space style={{ marginBottom: 16 }}>
-                <div>
-                  <Tabs
-                    hideAdd
-                    onChange={onChange}
-                    activeKey={activeKey}
-                    type="editable-card"
-                    onEdit={onEdit}
-                    items={menuItems}
-                  />
-                </div>
-              </Space>
               <div>
-                <button
-                  style={{
-                    backgroundColor: "#17a2b8",
-                    border: "none",
-                    color: "white",
-                    padding: "8px 20px",
+                <div>
+                  {currentPage?.buttons.map((btn) => {
+                    if (btn.onViewScreen) {
+                      return <button
+                        onClick={showModal}
+                        style={{
+                          backgroundColor: "#17a2b8",
+                          border: "none",
+                          color: "white",
+                          padding: "8px 20px",
+                          display: "flex",
+                          margin: " 0 0 14px 1114px",
+                        }} key={btn.title}>{btn.title}
+                      </button>;
+                    }
+                    return null;
+                  })}
 
-                    margin: " 0 0 14px 1114px",
-                  }}
-                  onClick={showModal}
-                  type="primary"
-                >
-                  <PlusOutlined />
-                  Create
-                </button>
+                  <Modal
+                    title={currentPage?.name}
+                    open={isModalOpen}
+                    onOk={handleOk}
+                    onCancel={handleCancel}
 
-                <Modal
-                  title="Basic Modal"
-                  open={isModalOpen}
-                  onOk={handleOk}
-                  onCancel={handleCancel}
-                >
-                  <p>Some contents...</p>
-                  <p>Some contents...</p>
-                  <p>Some contents...</p>
-                </Modal>
+                  >
+                    <Form onFinish={onFinish} initialValues={{}}>
+                      {btn?.map((field: any) => {
+                        return (
+                          <Form.Item label={field.name} name={field.name} key={field.name}>
+                            <Input />
+                          </Form.Item>
+                        )
+                      })}
+
+                      <Button type="primary" htmlType="submit">
+                        Submit
+                      </Button>
+                    </Form>
+
+                  </Modal>
+                </div>
 
                 <div style={{ marginLeft: "776px", marginTop: " 0 20px" }}>
-                  {/* -------- */}
                   <Input
                     style={{ width: "74%", marginBottom: "20px" }}
                     placeholder="Search"
@@ -276,7 +273,6 @@ const Admin = (props: Props) => {
                   >
                     <SearchOutlined />
                   </span>
-                  {/* ---- */}
                   <span
                     style={{
                       padding: " 6px 8px",
@@ -298,15 +294,18 @@ const Admin = (props: Props) => {
                   </span>
                 </div>
               </div>
+            </>
+            <>
               <Table
                 columns={columns}
-                dataSource={data}
-                onChange={handleChange}
+                dataSource={dataSourceMapped}
+              //onChange={handleChange}
               />
             </>
           </Content>
         </Layout>
       </Layout>
+      <ToastContainer />
     </div>
   );
 };

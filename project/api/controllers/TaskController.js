@@ -10,19 +10,16 @@
 module.exports = {
   getAllTask: async function (req, res) {
     try {
-      const task = await Task.find(
+      const tasks = await Task.find(
         req.query.q ? { title: { like: `%${req.query.q}%` } } : {}
       );
-      return res.status(201).json({
-        message: "Lấy task thành công",
-        task,
-      });
+      return res.status(201).json(tasks);
     } catch (error) {
       return res.status(400).json({
         message: error.message,
       });
     }
-  },
+  }
 };
 
 //      getOneTask: async function (req, res) {

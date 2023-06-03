@@ -9,8 +9,7 @@ const Joi = require("joi");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
-const sendOtpEmail = require("./SendEmailController");
-const otpGenerator = require("otp-generator");
+
 
 module.exports = {
   getCurrentUser: async function (req, res) {
@@ -131,11 +130,11 @@ module.exports = {
 
   createGoogle: async function (req, res, next) {
     try {
-      const token = await new Promise((resolve, reject) => {
+      const token = await new Promise((resolve) => {
         passport.authenticate(
           "google",
           { session: false },
-          async (err, user, info) => {
+          async (err, user) => {
             if (err || !user) {
               return res.redirect("/signin");
             }

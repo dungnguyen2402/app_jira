@@ -11,12 +11,13 @@ import UpdateProject from "./pages/project/UpdateProject";
 import { useEffect } from "react";
 import axios from "axios";
 import Admin from "./pages/admin/Admin";
-import NavAdmin from "./pages/admin/NavAdmin";
+import NavAdmin from "./pages/admin/Table";
+import FormModal from "./dynamic/FormModal";
 
 function App() {
   const [searchParams] = useSearchParams();
 
-  console.log(searchParams.get("token"));
+  // console.log(searchParams.get("token"));
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -38,7 +39,7 @@ function App() {
         localStorage.setItem("currentUser", JSON.stringify(userData));
       })
       .catch(() => {
-        console.log("Error");
+        // console.log("Error");
       });
   }, []);
 
@@ -55,7 +56,7 @@ function App() {
           <Route index path="/signup" element={<Signup />} />
           <Route index path="/signin" element={<Signin />} />
           <Route index path="/admin" element={<Admin />}></Route>
-          <Route index path="/navadmin" element={<NavAdmin />}></Route>
+          <Route index path="/form" element={<FormModal />}></Route >
         </Routes>
       </div>
     </>
